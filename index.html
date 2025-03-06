@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>未来チック暗号アプリ</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #0f0c29; /* 暗い青紫色 */
+      background: linear-gradient(to right, #0f0c29, #302b63, #24243e); /* グラデーション */
+      color: #ffffff; /* 白色 */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: rgba(0, 0, 0, 0.7); /* 半透明の黒 */
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #00ffcc; /* ネオン風の枠 */
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+      text-align: center;
+      width: 400px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #00ffcc; /* ネオンシアン */
+      text-shadow: 0 0 10px #00ffcc;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      background: rgba(0, 0, 0, 0.5); /* 半透明の黒 */
+      color: #00ffcc; /* ネオンシアン */
+      border: 2px solid #00ffcc; /* ネオン風の枠 */
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-family: 'Arial', sans-serif;
+    }
+    textarea::placeholder {
+      color: #00ffcc; /* ネオンシアン */
+      opacity: 0.7;
+    }
+    button {
+      background: #00ffcc; /* ネオンシアン */
+      color: #0f0c29; /* 暗い青紫色 */
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+      transition: background 0.3s, transform 0.3s;
+    }
+    button:hover {
+      background: #00cc99; /* 濃いシアン */
+      transform: scale(1.05);
+    }
+    .mode {
+      margin-bottom: 20px;
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 18px;
+      word-wrap: break-word;
+      color: #00ffcc; /* ネオンシアン */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>未来チック暗号アプリ</h1>
+    <div class="mode">
+      <button id="encodeButton" onclick="switchMode('encode')">暗号作成モード</button>
+      <button id="decodeButton" onclick="switchMode('decode')">解読モード</button>
+    </div>
+    <textarea id="inputText" placeholder="ここに文字を入力してください"></textarea>
+    <button onclick="processText()">変換</button>
+    <button onclick="removeSpaces()">間を消す</button>
+    <h2>結果:</h2>
+    <p id="outputText" class="output"></p>
+  </div>
+
+  <script>
+    // 暗号ルール
+    const originalAlphabet = "abcdefghijklmnopqrstuvwxyz";
+    const cipherAlphabet = "tofhibcdjklmnpqsuvwxyzgrea";
+
+    // モード（encode: 暗号作成, decode: 解読）
+    let mode = "encode";
+
+    // モード切り替え
+    function switchMode(newMode) {
+      mode = newMode;
+      const encodeButton = document.getElementById("encodeButton");
+      const decodeButton = document.getElementById("decodeButton");
+
+      if (mode === "encode") {
+        encodeButton.style.backgroundColor = "#00ffcc";
+        decodeButton.style.backgroundColor = "#00cc99";
+      } else {
+        encodeButton.style.backgroundColor = "#00cc99";
+        decodeButton.style.backgroundColor = "#00ffcc";
+      }
+    }
+
+    // シフト暗号
+    const shiftText = (text, shift) => {
+      return text.split('').map(char => {
+        const index = originalAlphabet.indexOf(char);
+        if (index !== -1) {
+          const shiftedIndex = (index + shift + originalAlphabet.length) % originalAlphabet.length;
+          return originalAlphabet[shiftedIndex];
+        }
+        return char;
+      }).join('');
+    };
+
+    // 逆順暗号
+    const reverseText = (text) => {
+      return text.split('').reverse().join('');
+    };
+
+    // カスタム置換
+    const customReplace = (text, encode = true) => {
+      return text.split('').map(char => {
+        if (encode) {
+          const index = originalAlphabet.indexOf(char);
+          return index !== -1 ? cipherAlphabet[index] : char;
+        } else {
+          const index = cipherAlphabet.indexOf(char);
+          return index !== -1 ? originalAlphabet[index] : char;
+        }
+      }).join('');
+    };
+
+    // 奇数番目と偶数番目の文字を分けて並べ替える
+    const oddEvenShuffle = (text, encode = true) => {
+      if (encode) {
+        const oddChars = [];
+        const evenChars = [];
+        for (let i = 0; i < text.length; i++) {
+          if (i % 2 === 0) oddChars.push(text[i]); // 奇数番目
+          else evenChars.push(text[i]); // 偶数番目
+        }
+        return oddChars.join('') + evenChars.join('');
+      } else {
+        // 解読時: 奇数偶数シャッフルの逆
+        const mid = Math.ceil(text.length / 2);
+        const oddChars = text.slice(0, mid).split('');
+        const evenChars = text.slice(mid).split('');
+        let result = '';
+        for (let i = 0; i < evenChars.length; i++) {
+          result += oddChars[i] || '';
+          result += evenChars[i] || '';
+        }
+        if (oddChars.length > evenChars.length) {
+          result += oddChars[oddChars.length - 1];
+        }
+        return result;
+      }
+    };
+
+    // テキストを変換
+    function processText() {
+      const inputText = document.getElementById("inputText").value.toLowerCase();
+      let outputText = "";
+
+      // スペースの位置を記録
+      const spacePositions = [];
+      for (let i = 0; i < inputText.length; i++) {
+        if (inputText[i] === " ") spacePositions.push(i);
+      }
+
+      // スペースを除いたテキスト
+      const textWithoutSpaces = inputText.replace(/\s+/g, "");
+
+      if (mode === "encode") {
+        // 暗号作成モード: シフト → 逆順 → カスタム置換 → 奇数偶数シャッフル
+        let tempText = shiftText(textWithoutSpaces, 2); // シフト
+        tempText = reverseText(tempText); // 逆順
+        tempText = customReplace(tempText, true); // カスタム置換
+        outputText = oddEvenShuffle(tempText, true); // 奇数偶数シャッフル
+      } else {
+        // 解読モード: 奇数偶数シャッフルの逆 → カスタム置換の逆 → 逆順 → シフトの逆
+        let tempText = oddEvenShuffle(textWithoutSpaces, false); // 奇数偶数シャッフルの逆
+        tempText = customReplace(tempText, false); // カスタム置換の逆
+        tempText = reverseText(tempText); // 逆順
+        outputText = shiftText(tempText, -2); // シフトの逆
+      }
+
+      // スペースを復元
+      let finalOutput = outputText.split('');
+      for (const pos of spacePositions) {
+        finalOutput.splice(pos, 0, " ");
+      }
+      outputText = finalOutput.join('');
+
+      document.getElementById("outputText").textContent = outputText;
+    }
+
+    // 間を消す機能
+    function removeSpaces() {
+      const inputText = document.getElementById("inputText").value;
+      const textWithoutSpaces = inputText.replace(/\s+/g, "");
+      document.getElementById("inputText").value = textWithoutSpaces;
+    }
+
+    // 初期モード設定
+    switchMode("encode");
+  </script>
+</body>
+</html>
